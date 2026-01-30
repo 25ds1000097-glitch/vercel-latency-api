@@ -1,13 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from statistics import mean
-import json
-import os
-import math
+import json, os, math
 
 app = FastAPI()
 
-# Enable CORS for all origins and POST
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,10 +12,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load telemetry data bundled with deployment
-DATA_FILE = os.path.join(os.path.dirname(__file__), "..", "q-vercel-latency.json")
+DATA_FILE = os.path.join(os.path.dirname(__file__), "q-vercel-latency.json")
 
-with open(DATA_FILE, "r") as f:
+with open(DATA_FILE) as f:
     DATA = json.load(f)
 
 def percentile(values, p):
@@ -40,12 +36,12 @@ def analytics(payload: dict):
     for r in regions:
         rows = [x for x in DATA if x["region"] == r]
         latencies = [x["latency_ms"] for x in rows]
-        uptimes = [x["uptime"] for x in rows]
+        uptimes = [x["uptime_pct"] for x in rows]
 
         result[r] = {
-            "avg_latency": mean(latencies),
-            "p95_latency": percentile(latencies, 0.95),
-            "avg_uptime": mean(uptimes),
+            "avg_latency": round(mean(latencies), 2),
+            "p95_latency": round(percentile(latencies, 0.95), 2),
+            "avg_uptime": round(mean(uptimes), 2),
             "breaches": sum(1 for x in latencies if x > threshold)
         }
 
