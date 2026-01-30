@@ -12,10 +12,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DATA_FILE = os.path.join(os.path.dirname(__file__), "q-vercel-latency.json")
-
-with open(DATA_FILE) as f:
+with open("q-vercel-latency.json", "r") as f:
     DATA = json.load(f)
+
 
 def percentile(values, p):
     values = sorted(values)
